@@ -140,6 +140,7 @@ Private Function prcSummary() As Boolean
                     ", c.sFileName" & _
                     ", c.dCreatedx" & _
                     ", c.dDateSent" & _
+                    ", IFNULL(b.sPartnerN, '') sPartnerN" & _
                 " FROM CP_SO_Insurance a" & _
                     ", CP_SO_Master b" & _
                     ", Bolttech c" & _
@@ -147,9 +148,10 @@ Private Function prcSummary() As Boolean
                     " AND a.sBatchNox = c.sBatchNox" & _
                     " AND a.cTranStat = '1'" & _
                     " AND c.cTranStat = '1'" & _
+                    " AND a.sSourceNo IN ('C00523103285', 'C00623001737', 'C02723005963', 'C02723005964', 'C02723005965', 'C02923002342', 'C03523004351', 'C03523004352', 'C03823001921', 'C07123001867', 'C09323001003', 'C09824000912', 'C10723001613')" & _
                 " ORDER BY b.dTransact"
                 
-        psSQL = AddCondition(psSQL, " a.dTransact BETWEEN " & dateParm(.DateFrom) & " AND " & dateParm(.DateThru))
+        'psSQL = AddCondition(psSQL, " b.dTransact BETWEEN " & dateParm(.DateFrom) & " AND " & dateParm(.DateThru))
         
         If .BranchCd <> "" Then
         psSQL = AddCondition(psSQL, " a.sSourceNo LIKE " & strParm(.BranchCd & "%"))
@@ -239,40 +241,10 @@ Private Function prcSummary() As Boolean
          psSQL = psSQL & _
                   " WHERE a.sTransNox = b.sTransNox" & _
                      " AND a.cTranStat NOT IN ('3', '7')" & _
-                  " HAVING c.sCategID1 = 'C001052'"
+                  " HAVING c.sCategID1 = 'C001001'"
              
-         Select Case p_oRawSource("sSourceNo")
-         Case "C03523004351"
-            psSQL = AddCondition(psSQL, "a.sTransNox = " & strParm("C03524003338"))
-         Case "C03823001921"
-            psSQL = AddCondition(psSQL, "a.sTransNox = " & strParm("C03824001522"))
-         Case "C09824000912"
-            psSQL = AddCondition(psSQL, "a.sTransNox = " & strParm("C09824000898"))
-         Case "C09323001003"
-            psSQL = AddCondition(psSQL, "a.sTransNox = " & strParm("C09324000853"))
-         Case "C00523103285"
-            psSQL = AddCondition(psSQL, "a.sTransNox = " & strParm("C00524003285"))
-         Case "C00623001737"
-            psSQL = AddCondition(psSQL, "a.sTransNox = " & strParm("C00624001350"))
-         Case "C03523004352"
-            psSQL = AddCondition(psSQL, "a.sTransNox = " & strParm("C03524003785"))
-         Case "C02723005963"
-            psSQL = AddCondition(psSQL, "a.sTransNox = " & strParm("C02724004168"))
-         Case "C02723005964"
-            psSQL = AddCondition(psSQL, "a.sTransNox = " & strParm("C02724004283"))
-         Case "C02723005965"
-            psSQL = AddCondition(psSQL, "a.sTransNox = " & strParm("C02724004383"))
-         Case "C02923002342"
-            psSQL = AddCondition(psSQL, "a.sTransNox = " & strParm("C02924001555"))
-         Case "C10723001613"
-            psSQL = AddCondition(psSQL, "a.sTransNox = " & strParm("C10724001120"))
-         Case "C07123001867"
-            psSQL = AddCondition(psSQL, "a.sTransNox = " & strParm("C07124001312"))
-         Case Else
-            psSQL = AddCondition(psSQL, "a.sTransNox = " & strParm(p_oRawSource("sSourceNo")))
-         End Select
+         psSQL = AddCondition(psSQL, "a.sTransNox = " & strParm(IIf(p_oRawSource("sPartnerN") = "", p_oRawSource("sSourceNo"), p_oRawSource("sPartnerN"))))
              
-         Debug.Print psSQL
          Set lors = p_oAppDrivr.Connection.Execute(psSQL, , adCmdText)
              
          Dim lsMOP As String
